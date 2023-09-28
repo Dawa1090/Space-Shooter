@@ -46,12 +46,14 @@ def main():
     username = input(" > ")
 
     player_from_database = Player.load(username)
+
     if not player_from_database:
         player_from_database = Player.create(username)
         print(f"Hello {player_from_database.username}!")
     else:
         print(f"Welcome back {player_from_database.username}!")
         delete_player(player_from_database)
+        quit()
 
     run = True
     player = pygame.Rect(200, HEIGHT - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT)
@@ -115,8 +117,8 @@ def main():
     pygame.quit()
 
 if __name__ == "__main__":
-        Player.create_table()
-        Player.get_all()
-        Score.create_table()
-        Score.get_all()
-        main()
+    Player.create_table()
+    Player.get_all()
+    Score.create_table()
+    Score.get_all()
+    main()

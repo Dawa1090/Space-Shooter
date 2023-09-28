@@ -73,7 +73,7 @@ class Player:
 
     def delete(self):
         sql = '''
-            DELETE FROM PLAYERS
+            DELETE FROM players
             WHERE id = ?
         '''
         CURSOR.execute(sql,(self.id,))
@@ -81,17 +81,27 @@ class Player:
 
         Player.all = [player for player in Player.all if player.id != self.id]
 
+        for score in self.scores:
+            score.delete()
+
     
     @classmethod
     def load(cls, username):
-        CURSOR.execute("SELECT * FROM players WHERE username=?", (username,))
-        player_data = CURSOR.fetchone()
-        if player_data:
-            player = cls(player_data[1])
-            player.id = player_data[0]
-            return player
+        players = [player for player in Player.all if player.username == username]
+
+        if players:
+            return players[0]
         else:
             return None
+
+        # CURSOR.execute("SELECT * FROM players WHERE username=?", (username,))
+        # player_data = CURSOR.fetchone()
+        # if player_data:
+        #     player = cls(player_data[1])
+        #     player.id = player_data[0]
+        #     return player
+        # else:
+        #     return None
         
     @classmethod
     def find_by_id(cls, id):
@@ -113,6 +123,7 @@ class Score:
     all = []
 
     def __init__(self, player_id, score):
+        self.id = None
         self.player_id = player_id
         self.player = Player.find_by_id(player_id)
         self.player.scores.append(self)
@@ -133,18 +144,19 @@ class Score:
     def create(cls, player_id, score):
         score = cls(player_id, score)
         score.save()
-        cls.all.append(score)
         return score
 
     
     def save(self):
         sql = '''
             INSERT INTO scores(player_id, score)
-            Values (?, ?)
+            VALUES (?, ?)
         '''
 
         CURSOR.execute(sql, (self.player_id, self.score))
+        self.id = CURSOR.execute("SELECT last_insert_rowid() FROM scores").fetchone()[0]
         CONN.commit()
+        Score.all.append(self)
 
     # delete score
 
@@ -169,7 +181,6 @@ class Score:
             )
         '''
         CURSOR.execute(sql)
-        cls.all = []
 
     # Deletes the scores table
     @classmethod
